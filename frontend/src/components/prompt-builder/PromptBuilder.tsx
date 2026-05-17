@@ -32,6 +32,7 @@ const MODE_LABELS: { value: BuilderMode; label: string }[] = [
 ];
 
 function loadState<T>(key: string, fallback: T): T {
+  if (typeof window === 'undefined') return fallback;
   try {
     const raw = localStorage.getItem(key);
     if (raw) return JSON.parse(raw) as T;
@@ -40,6 +41,7 @@ function loadState<T>(key: string, fallback: T): T {
 }
 
 function saveState(key: string, value: unknown) {
+  if (typeof window === 'undefined') return;
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
 }
 
@@ -47,7 +49,9 @@ export function PromptBuilder({ modality, modelSlug, disabled = false, onChange 
   const caps = getCapabilities(modelSlug);
 
   const [mode, setMode] = useState<BuilderMode>(() =>
-    (localStorage.getItem(`${STORAGE_KEY}_mode`) as BuilderMode) ?? 'guided'
+    typeof window !== 'undefined'
+      ? (localStorage.getItem(`${STORAGE_KEY}_mode`) as BuilderMode) ?? 'guided'
+      : 'guided'
   );
   const [imageState, setImageState] = useState<ImageFormState>(() =>
     loadState(`${STORAGE_KEY}_image`, DEFAULT_IMAGE_STATE)
@@ -92,7 +96,7 @@ export function PromptBuilder({ modality, modelSlug, disabled = false, onChange 
   useEffect(() => { saveState(`${STORAGE_KEY}_image`, imageState); }, [imageState]);
   useEffect(() => { saveState(`${STORAGE_KEY}_video`, videoState); }, [videoState]);
   useEffect(() => { saveState(`${STORAGE_KEY}_audio`, audioState); }, [audioState]);
-  useEffect(() => { localStorage.setItem(`${STORAGE_KEY}_mode`, mode); }, [mode]);
+  useEffect(() => { saveState(`${STORAGE_KEY}_mode`, mode); }, [mode]);
 
   // ── Preset apply ─────────────────────────────────────────────────────────────
 

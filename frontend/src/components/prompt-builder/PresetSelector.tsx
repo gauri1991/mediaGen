@@ -17,10 +17,12 @@ interface PresetSelectorProps {
 const STORAGE_KEY = 'mediagen_presets';
 
 function loadCustom(): Preset[] {
+  if (typeof window === 'undefined') return [];
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]'); } catch { return []; }
 }
 
 function saveCustom(presets: Preset[]) {
+  if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
 }
 
