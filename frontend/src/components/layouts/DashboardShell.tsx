@@ -58,11 +58,14 @@ function NavLink({
   onClick?: () => void;
 }) {
   const className = cn(
-    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors w-full",
+    "flex items-center gap-3 rounded-lg py-2 text-sm font-medium transition-colors w-full",
     active
-      ? "bg-primary/10 text-primary"
-      : "text-muted-foreground hover:bg-muted hover:text-foreground",
-    collapsed && "justify-center px-2"
+      ? collapsed
+        ? "bg-cyan-500/8 text-cyan-600 dark:text-cyan-400 justify-center px-2"
+        : "border-l-2 border-cyan-500 bg-cyan-500/8 text-cyan-700 dark:text-cyan-400 rounded-l-none pl-[10px] pr-3"
+      : collapsed
+        ? "text-muted-foreground hover:bg-muted hover:text-foreground justify-center px-2"
+        : "text-muted-foreground hover:bg-muted hover:text-foreground pl-3 pr-3"
   );
 
   const content = (
@@ -99,11 +102,13 @@ function SidebarContent({
   isActive,
   onNavClick,
   onSignOut,
+  session,
 }: {
   collapsed: boolean;
   isActive: (href: string) => boolean;
   onNavClick: () => void;
   onSignOut: () => void;
+  session: { name?: string | null; email?: string | null } | null;
 }) {
   return (
     <div className="flex h-full flex-col">
@@ -145,6 +150,23 @@ function SidebarContent({
 
       {/* Bottom */}
       <div className="py-4 px-2 space-y-1">
+        {/* User profile strip */}
+        {!collapsed && session && (
+          <div className="px-1 py-2 mb-1">
+            <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-2 py-1.5">
+              <div className="h-6 w-6 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shrink-0">
+                <span className="text-[10px] font-bold text-white">
+                  {session.name?.[0]?.toUpperCase() ?? 'U'}
+                </span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium truncate">{session.name}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{session.email}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <TooltipProvider delay={0}>
           {bottomItems.map(({ href, icon, label }) => (
             <NavLink
@@ -191,7 +213,7 @@ function SidebarContent({
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -210,6 +232,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     isActive,
     onNavClick: () => setMobileOpen(false),
     onSignOut: handleSignOut,
+    session: user ? { name: user.name, email: user.email } : null,
   };
 
   return (
