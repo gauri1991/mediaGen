@@ -77,14 +77,16 @@ export function AssetTile({ asset, onClick, onAddToProject }: AssetTileProps) {
       {/* Hover overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
         {onAddToProject && (
-          <button
-            type="button"
+          <div
+            role="button"
+            tabIndex={0}
             onClick={(e) => { e.stopPropagation(); onAddToProject(asset.generation.id); }}
-            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-cyan-500/80 transition-colors"
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onAddToProject(asset.generation.id); } }}
+            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-cyan-500/80 transition-colors cursor-pointer"
             aria-label="Add to project"
           >
             <FolderPlus className="w-3.5 h-3.5" />
-          </button>
+          </div>
         )}
         <p className="text-white text-xs font-medium line-clamp-2 leading-tight">
           {asset.generation.prompt}
