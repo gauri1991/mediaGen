@@ -98,6 +98,7 @@ NINJA_JWT = {
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
 
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # allow any origin in development
 CORS_ALLOWED_ORIGINS = os.environ.get(
     'CORS_ALLOWED_ORIGINS', 'http://localhost:3000'
 ).split(',')
