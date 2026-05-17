@@ -171,6 +171,76 @@ export const djangoApi = {
     if (!res.ok) return null;
     return res.json();
   },
+
+  // Projects
+  async listProjects(params?: { status?: string; tag?: string }) {
+    const q = new URLSearchParams();
+    if (params?.status) q.set('status', params.status);
+    if (params?.tag) q.set('tag', params.tag);
+    const res = await apiFetch(`/projects?${q}`);
+    if (!res.ok) return [];
+    return res.json();
+  },
+
+  async createProject(body: { name: string; description?: string; status?: string; tags?: string[]; deadline?: string }) {
+    const res = await apiFetch('/projects/', { method: 'POST', body: JSON.stringify(body) });
+    if (!res.ok) throw new Error('Failed to create project');
+    return res.json();
+  },
+
+  async getProject(id: string) {
+    const res = await apiFetch(`/projects/${id}`);
+    if (!res.ok) throw new Error('Project not found');
+    return res.json();
+  },
+
+  async updateProject(id: string, body: Partial<{ name: string; description: string; status: string; tags: string[]; deadline: string; cover_asset_id: string }>) {
+    const res = await apiFetch(`/projects/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
+    if (!res.ok) throw new Error('Failed to update project');
+    return res.json();
+  },
+
+  async deleteProject(id: string) {
+    const res = await apiFetch(`/projects/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete project');
+    return res.ok;
+  },
+
+  async addGenerationsToProject(id: string, generation_ids: string[], note?: string) {
+    const res = await apiFetch(`/projects/${id}/generations`, {
+      method: 'POST',
+      body: JSON.stringify({ generation_ids, note: note ?? '' }),
+    });
+    if (!res.ok) throw new Error('Failed to add generations to project');
+    return res.json();
+  },
+
+  async removeGenerationFromProject(id: string, gen_id: string) {
+    const res = await apiFetch(`/projects/${id}/generations/${gen_id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to remove generation from project');
+    return res.ok;
+  },
+
+  async listProjectAssets(id: string, params?: { cursor?: string; limit?: number }) {
+    const q = new URLSearchParams();
+    if (params?.cursor) q.set('cursor', params.cursor);
+    if (params?.limit) q.set('limit', String(params.limit));
+    const res = await apiFetch(`/projects/${id}/assets?${q}`);
+    if (!res.ok) return { items: [], nextCursor: null };
+    return res.json();
+  },
+
+  async getProjectStats(id: string) {
+    const res = await apiFetch(`/projects/${id}/stats`);
+    if (!res.ok) return null;
+    return res.json();
+  },
+
+  async setProjectCover(id: string, asset_id: string) {
+    const res = await apiFetch(`/projects/${id}/cover`, { method: 'POST', body: JSON.stringify({ asset_id }) });
+    if (!res.ok) throw new Error('Failed to set project cover');
+    return res.json();
+  },
 };
 
 // Stream URL (EventSource) — access token appended as query param since
