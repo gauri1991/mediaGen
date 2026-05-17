@@ -98,11 +98,33 @@ function HistoryPageInner() {
 
   useEffect(() => {
     let cancelled = false;
-    import('@/lib/api').then(({ djangoApi }) =>
-      djangoApi.listGenerations({ limit: 100 })
-    ).then((data) => {
-      if (!cancelled) { setGenerations(data as Generation[]); setLoading(false); }
-    }).catch(() => { if (!cancelled) setLoading(false); });
+
+    async function fetchAll() {
+      try {
+        const { djangoApi } = await import('@/lib/api');
+        const data = await djangoApi.listGenerations({ limit: 100 });
+        if (!cancelled) {
+          setGenerations(data as Generation[]);
+          setLoading(false);
+        }
+        return data as Generation[];
+      } catch {
+        if (!cancelled) setLoading(false);
+        return [] as Generation[];
+      }
+    }
+
+    const ACTIVE = new Set(['queued', 'processing']);
+
+    async function loop() {
+      const data = await fetchAll();
+      if (cancelled) return;
+      if (data.some((g) => ACTIVE.has(g.status))) {
+        setTimeout(loop, 3000);
+      }
+    }
+
+    loop();
     return () => { cancelled = true; };
   }, []);
 
