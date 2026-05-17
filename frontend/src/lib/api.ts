@@ -121,6 +121,27 @@ export const djangoApi = {
     return res.json() as Promise<{ id: number; name: string; email: string }>;
   },
 
+  async updateMe(body: { name: string }) {
+    const res = await apiFetch('/users/me', { method: 'PATCH', body: JSON.stringify(body) });
+    if (!res.ok) throw new Error('Failed to update profile');
+    return res.json() as Promise<{ id: number; name: string; email: string }>;
+  },
+
+  async changePassword(body: { old_password: string; new_password: string }) {
+    const res = await apiFetch('/users/change-password', { method: 'POST', body: JSON.stringify(body) });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error((err as { detail?: string }).detail ?? 'Failed to change password');
+    }
+    return res.json();
+  },
+
+  async providersStatus() {
+    const res = await apiFetch('/users/providers/status');
+    if (!res.ok) return { replicate: false, akashml: false };
+    return res.json() as Promise<{ replicate: boolean; akashml: boolean }>;
+  },
+
   // Generations
   async createGeneration(data: {
     model_slug: string;
