@@ -30,7 +30,7 @@ interface Generation {
 
 const STATUS_MAP: Record<string, { label: string; icon: React.ElementType; classes: string }> = {
   queued: { label: 'Queued', icon: Clock, classes: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
-  processing: { label: 'Processing', icon: Loader2, classes: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
+  processing: { label: 'Processing', icon: Loader2, classes: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/30' },
   completed: { label: 'Completed', icon: CheckCircle2, classes: 'bg-green-50 text-green-700 border-green-200' },
   failed: { label: 'Failed', icon: XCircle, classes: 'bg-red-50 text-red-700 border-red-200' },
 };

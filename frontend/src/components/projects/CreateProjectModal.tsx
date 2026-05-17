@@ -119,7 +119,7 @@ export function CreateProjectModal({ open, onClose, onSaved, project }: Props) {
             <Label>Tags</Label>
             <div className="flex flex-wrap gap-1.5 mb-1.5">
               {tags.map((tag) => (
-                <span key={tag} className="inline-flex items-center gap-1 text-xs bg-cyan-50 text-cyan-700 border border-cyan-200 px-2 py-0.5 rounded-full">
+                <span key={tag} className="inline-flex items-center gap-1 text-xs bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-full">
                   {tag}
                   <button type="button" onClick={() => removeTag(tag)} className="hover:text-red-500"><X className="w-2.5 h-2.5" /></button>
                 </span>

@@ -2,9 +2,9 @@
 
 const STATUS_CONFIG: Record<string, { label: string; classes: string }> = {
   draft:    { label: 'Draft',     classes: 'bg-muted text-muted-foreground border-border' },
-  active:   { label: 'Active',    classes: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
-  review:   { label: 'In Review', classes: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
-  complete: { label: 'Complete',  classes: 'bg-green-50 text-green-700 border-green-200' },
+  active:   { label: 'Active',    classes: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/30' },
+  review:   { label: 'In Review', classes: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30' },
+  complete: { label: 'Complete',  classes: 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30' },
   archived: { label: 'Archived',  classes: 'bg-muted/50 text-muted-foreground border-border' },
 };
 

@@ -69,7 +69,7 @@ export function AddToProjectModal({ open, onClose, generationId }: Props) {
                   onClick={() => setSelected(p.id)}
                   className={`w-full flex items-center justify-between rounded-lg border px-3 py-2 text-left transition-all ${
                     selected === p.id
-                      ? 'border-cyan-500 bg-cyan-50/50'
+                      ? 'border-cyan-500 bg-cyan-500/10'
                       : 'border-border hover:border-border/60 hover:bg-muted/30'
                   }`}
                 >

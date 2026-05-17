@@ -18,8 +18,8 @@ export function ChipGroup({ options, value, onChange, cols = 3 }: ChipGroupProps
           className={[
             'border rounded-lg py-1.5 px-2 text-xs font-medium transition-all text-center',
             value === opt.value
-              ? 'border-cyan-500 bg-cyan-50/50 text-cyan-700'
-              : 'border-border bg-card text-muted-foreground hover:border-border/60 hover:text-foreground',
+              ? 'border-cyan-500 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400'
+              : 'border-border bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground',
           ].join(' ')}
         >
           {opt.label}

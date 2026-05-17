@@ -31,8 +31,8 @@ export function ModelPicker({ modality, value, onChange }: ModelPickerProps) {
               className={[
                 'w-full flex items-center justify-between rounded-lg border px-3 py-2 text-left text-sm transition-all',
                 active
-                  ? 'border-cyan-500 bg-cyan-50/50 text-foreground'
-                  : 'border-border bg-card text-foreground hover:border-border/60 hover:bg-muted/30',
+                  ? 'border-cyan-500 bg-cyan-500/10 text-foreground'
+                  : 'border-border bg-muted/40 text-foreground hover:bg-muted/60',
               ].join(' ')}
             >
               <span className="font-medium">{config.label}</span>

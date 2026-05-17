@@ -95,7 +95,7 @@ export function PresetSelector({ modality, audioSubType, onSelect, onSave }: Pre
             key={preset.id}
             type="button"
             onClick={() => onSelect(preset)}
-            className="text-xs border border-border bg-card rounded-full px-2.5 py-1 text-muted-foreground hover:border-cyan-400 hover:text-foreground transition-all"
+            className="text-xs border border-border bg-muted/40 rounded-full px-2.5 py-1 text-muted-foreground hover:border-cyan-500 hover:bg-cyan-500/10 hover:text-cyan-600 transition-all"
           >
             {preset.label}
           </button>
@@ -105,14 +105,14 @@ export function PresetSelector({ modality, audioSubType, onSelect, onSave }: Pre
             <button
               type="button"
               onClick={() => onSelect(preset)}
-              className="text-xs border border-cyan-200 bg-cyan-50/50 rounded-l-full pl-2.5 pr-1 py-1 text-cyan-700 hover:border-cyan-400 transition-all"
+              className="text-xs border border-cyan-500/40 bg-cyan-500/10 rounded-l-full pl-2.5 pr-1 py-1 text-cyan-600 dark:text-cyan-400 hover:border-cyan-500 transition-all"
             >
               {preset.label}
             </button>
             <button
               type="button"
               onClick={() => deleteCustom(preset.id)}
-              className="text-xs border border-cyan-200 border-l-0 bg-cyan-50/50 rounded-r-full px-1 py-1 text-cyan-400 hover:text-red-500 hover:border-red-200 transition-all"
+              className="text-xs border border-cyan-500/40 border-l-0 bg-cyan-500/10 rounded-r-full px-1 py-1 text-cyan-500/60 hover:text-red-500 hover:border-red-400/40 transition-all"
             >
               <X className="w-2.5 h-2.5" />
             </button>

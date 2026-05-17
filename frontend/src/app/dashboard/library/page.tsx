@@ -172,7 +172,7 @@ function LibraryPageInner() {
               className={[
                 'px-4 py-1.5 rounded-full text-sm font-medium border transition-all',
                 filter === value
-                  ? 'border-cyan-500 bg-cyan-50 text-cyan-700'
+                  ? 'border-cyan-500 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400'
                   : 'border-border bg-card text-muted-foreground hover:border-border/60',
               ].join(' ')}
             >
