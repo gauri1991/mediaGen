@@ -7,7 +7,8 @@ import {
   ArrowLeft, MoreHorizontal, Pencil, Trash2, Plus,
   Image, Video, Music, CalendarDays,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
@@ -226,10 +227,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           </Button>
 
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-9 px-0">
-                <MoreHorizontal className="w-4 h-4" />
-              </Button>
+            <DropdownMenuTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'w-9 px-0')}>
+              <MoreHorizontal className="w-4 h-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onClick={() => setShowEdit(true)}>
