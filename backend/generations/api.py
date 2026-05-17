@@ -291,6 +291,8 @@ def usage_summary(request):
 
     completed = qs.filter(status=Generation.Status.COMPLETED).count()
     failed = qs.filter(status=Generation.Status.FAILED).count()
+    queued = qs.filter(status=Generation.Status.QUEUED).count()
+    processing = qs.filter(status=Generation.Status.PROCESSING).count()
 
     by_modality = list(
         qs.values('modality')
@@ -298,13 +300,26 @@ def usage_summary(request):
         .order_by('modality')
     )
 
+    by_model = list(
+        qs.values('model_slug', 'modality')
+        .annotate(count=Count('id'), cost=Sum('cost_credits'))
+        .order_by('-count')[:10]
+    )
+
     return UsageOut(
         total=agg['total'] or 0,
         total_cost=float(agg['total_cost'] or 0),
         completed=completed,
         failed=failed,
+        queued=queued,
+        processing=processing,
         by_modality=[
             {'modality': r['modality'], 'count': r['count'], 'cost': float(r['cost'] or 0)}
             for r in by_modality
+        ],
+        by_model=[
+            {'model_slug': r['model_slug'], 'modality': r['modality'],
+             'count': r['count'], 'cost': float(r['cost'] or 0)}
+            for r in by_model
         ],
     )

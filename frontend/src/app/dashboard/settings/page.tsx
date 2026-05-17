@@ -227,10 +227,17 @@ const PROVIDERS = [
     description: 'Alternative compute provider',
     docsUrl: 'https://akash.network/',
   },
+  {
+    key: 'r2' as const,
+    envVar: 'R2_ACCOUNT_ID + R2_ACCESS_KEY_ID + R2_SECRET_ACCESS_KEY',
+    label: 'Cloudflare R2',
+    description: 'Asset storage (generated files)',
+    docsUrl: 'https://developers.cloudflare.com/r2/get-started/',
+  },
 ];
 
 function ApiKeysTab() {
-  const [status, setStatus] = useState<{ replicate: boolean; akashml: boolean } | null>(null);
+  const [status, setStatus] = useState<{ replicate: boolean; akashml: boolean; r2: boolean } | null>(null);
 
   useEffect(() => {
     djangoApi.providersStatus().then(setStatus);

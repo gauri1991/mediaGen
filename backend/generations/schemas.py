@@ -77,4 +77,7 @@ class UsageOut(Schema):
     total_cost: float
     completed: int
     failed: int
+    queued: int
+    processing: int
     by_modality: list[dict]
+    by_model: list[dict]

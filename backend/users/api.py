@@ -56,4 +56,5 @@ def providers_status(request):
     return {
         'replicate': bool(settings.REPLICATE_API_TOKEN),
         'akashml': bool(settings.AKASHML_API_KEY),
+        'r2': bool(settings.R2_ACCOUNT_ID and settings.R2_ACCESS_KEY_ID and settings.R2_SECRET_ACCESS_KEY),
     }

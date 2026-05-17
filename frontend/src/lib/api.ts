@@ -36,7 +36,13 @@ export const tokens = {
 
 // ── Base fetch ────────────────────────────────────────────────────────────────
 
-const DJANGO = process.env.NEXT_PUBLIC_DJANGO_URL ?? 'http://localhost:8000';
+// Derive the API host from the browser's current hostname so the app works
+// from any device on the LAN (e.g. 192.168.1.x) without env-var changes.
+// Falls back to NEXT_PUBLIC_DJANGO_URL during SSR or if the port is overridden.
+const DJANGO =
+  typeof window !== 'undefined'
+    ? `${window.location.protocol}//${window.location.hostname}:8000`
+    : (process.env.NEXT_PUBLIC_DJANGO_URL ?? 'http://localhost:8000');
 
 async function refreshAccessToken(): Promise<string | null> {
   const refresh = tokens.getRefresh();
@@ -139,7 +145,7 @@ export const djangoApi = {
   async providersStatus() {
     const res = await apiFetch('/users/providers/status');
     if (!res.ok) return { replicate: false, akashml: false };
-    return res.json() as Promise<{ replicate: boolean; akashml: boolean }>;
+    return res.json() as Promise<{ replicate: boolean; akashml: boolean; r2: boolean }>;
   },
 
   // Generations
