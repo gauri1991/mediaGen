@@ -34,7 +34,7 @@ def create_generation(request, data: GenerationCreate):
     except ValueError as e:
         raise HttpError(400, str(e))
 
-    provider = resolve_provider(data.model_slug, data.provider)
+    provider = resolve_provider(data.model_slug, data.provider, user=request.user)
 
     gen = Generation.objects.create(
         user=request.user,

@@ -5,16 +5,18 @@ from .base import BaseProvider, SubmitInput, JobStatus
 BASE = 'https://api.replicate.com/v1'
 
 
-def _headers() -> dict:
-    return {
-        'Authorization': f'Bearer {settings.REPLICATE_API_TOKEN}',
-        'Content-Type': 'application/json',
-        'Prefer': 'wait',
-    }
-
-
 class ReplicateProvider(BaseProvider):
     name = 'replicate'
+
+    def __init__(self, token: str | None = None):
+        self._token = token or getattr(settings, 'REPLICATE_API_TOKEN', '')
+
+    def _headers(self) -> dict:
+        return {
+            'Authorization': f'Bearer {self._token}',
+            'Content-Type': 'application/json',
+            'Prefer': 'wait',
+        }
 
     def submit(self, inp: SubmitInput) -> str:
         # model_slug format: "owner/name" or "owner/name:version"
@@ -28,7 +30,7 @@ class ReplicateProvider(BaseProvider):
             if ':' in model_id:
                 # versioned prediction
                 owner_name, version = model_id.rsplit(':', 1)
-                r = client.post(f'{BASE}/predictions', headers=_headers(), json={
+                r = client.post(f'{BASE}/predictions', headers=self._headers(), json={
                     'version': version,
                     'input': inp.params,
                     **({'webhook': inp.webhook_url, 'webhook_events_filter': ['completed']} if inp.webhook_url else {}),
@@ -37,7 +39,7 @@ class ReplicateProvider(BaseProvider):
                 # latest version of a model
                 r = client.post(
                     f'{BASE}/models/{model_id}/predictions',
-                    headers=_headers(),
+                    headers=self._headers(),
                     json=payload,
                 )
             r.raise_for_status()
@@ -45,7 +47,7 @@ class ReplicateProvider(BaseProvider):
 
     def poll(self, provider_job_id: str, modality: str = 'image') -> JobStatus:
         with httpx.Client(timeout=15) as client:
-            r = client.get(f'{BASE}/predictions/{provider_job_id}', headers=_headers())
+            r = client.get(f'{BASE}/predictions/{provider_job_id}', headers=self._headers())
             r.raise_for_status()
             data = r.json()
 
@@ -74,7 +76,7 @@ class ReplicateProvider(BaseProvider):
 
     def cancel(self, provider_job_id: str) -> None:
         with httpx.Client(timeout=10) as client:
-            client.post(f'{BASE}/predictions/{provider_job_id}/cancel', headers=_headers())
+            client.post(f'{BASE}/predictions/{provider_job_id}/cancel', headers=self._headers())
 
 
 def _model_id(model_slug: str) -> str:

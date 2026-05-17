@@ -83,13 +83,30 @@ def get_model(slug: str) -> dict:
     return MODEL_REGISTRY[slug]
 
 
-def resolve_provider(model_slug: str, override: str | None = None):
+def resolve_provider(model_slug: str, override: str | None = None, user=None):
+    from django.conf import settings
     from providers.replicate import ReplicateProvider
     from providers.akashml import AkashMLProvider
 
+    replicate_token = getattr(settings, 'REPLICATE_API_TOKEN', '')
+    akashml_key = getattr(settings, 'AKASHML_API_KEY', '')
+    akashml_url = getattr(settings, 'AKASHML_API_URL', '')
+
+    if user and getattr(user, 'is_authenticated', False):
+        from users.models import UserApiKey
+        for uk in UserApiKey.objects.filter(user=user, provider__in=['replicate', 'akashml']):
+            creds = uk.credentials
+            if uk.provider == 'replicate' and creds.get('token'):
+                replicate_token = creds['token']
+            elif uk.provider == 'akashml':
+                if creds.get('token'):
+                    akashml_key = creds['token']
+                if creds.get('api_url'):
+                    akashml_url = creds['api_url']
+
     _providers = {
-        'replicate': ReplicateProvider(),
-        'akashml': AkashMLProvider(),
+        'replicate': ReplicateProvider(token=replicate_token),
+        'akashml': AkashMLProvider(api_key=akashml_key, api_url=akashml_url),
     }
     model = get_model(model_slug)
     name = override or model['default_provider']

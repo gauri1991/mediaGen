@@ -147,8 +147,29 @@ export const djangoApi = {
 
   async providersStatus() {
     const res = await apiFetch('/users/providers/status');
-    if (!res.ok) return { replicate: false, akashml: false };
+    if (!res.ok) return { replicate: false, akashml: false, r2: false };
     return res.json() as Promise<{ replicate: boolean; akashml: boolean; r2: boolean }>;
+  },
+
+  async listApiKeys() {
+    const res = await apiFetch('/users/api-keys');
+    if (!res.ok) return [];
+    return res.json() as Promise<{ provider: string; configured: boolean; preview: Record<string, string> | null }[]>;
+  },
+
+  async saveApiKey(provider: string, credentials: Record<string, string>) {
+    const res = await apiFetch(`/users/api-keys/${provider}`, {
+      method: 'PUT',
+      body: JSON.stringify({ credentials }),
+    });
+    if (!res.ok) throw new Error('Failed to save API key');
+    return res.json();
+  },
+
+  async deleteApiKey(provider: string) {
+    const res = await apiFetch(`/users/api-keys/${provider}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to remove API key');
+    return res.json();
   },
 
   // Generations

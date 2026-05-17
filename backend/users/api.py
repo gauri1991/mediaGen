@@ -2,7 +2,8 @@ from ninja import Router
 from ninja.errors import HttpError
 from ninja_jwt.authentication import JWTAuth
 from django.contrib.auth import get_user_model
-from .schemas import SignupIn, UpdateMeIn, ChangePasswordIn, UserOut
+from .schemas import SignupIn, UpdateMeIn, ChangePasswordIn, UserOut, ApiKeyIn, ApiKeyOut
+from .models import UserApiKey
 
 router = Router(tags=['users'])
 User = get_user_model()
@@ -50,11 +51,63 @@ def change_password(request, data: ChangePasswordIn):
     return {'ok': True}
 
 
-@router.get('/providers/status', auth=None, response=dict)
+# ── Provider API keys ─────────────────────────────────────────────────────────
+
+@router.get('/api-keys', response=list[ApiKeyOut], auth=JWTAuth())
+def list_api_keys(request):
+    keys = UserApiKey.objects.filter(user=request.user)
+    return [ApiKeyOut.from_model(k) for k in keys]
+
+
+@router.put('/api-keys/{provider}', response=ApiKeyOut, auth=JWTAuth())
+def save_api_key(request, provider: str, data: ApiKeyIn):
+    VALID = {'replicate', 'akashml', 'r2'}
+    if provider not in VALID:
+        raise HttpError(400, f'Unknown provider: {provider}')
+    if not data.credentials:
+        raise HttpError(400, 'credentials must not be empty')
+
+    uk, _ = UserApiKey.objects.update_or_create(
+        user=request.user,
+        provider=provider,
+        defaults={'credentials': data.credentials},
+    )
+    return ApiKeyOut.from_model(uk)
+
+
+@router.delete('/api-keys/{provider}', auth=JWTAuth())
+def delete_api_key(request, provider: str):
+    deleted, _ = UserApiKey.objects.filter(user=request.user, provider=provider).delete()
+    if not deleted:
+        raise HttpError(404, 'Key not found')
+    return {'ok': True}
+
+
+# ── Provider status (checks DB keys first, falls back to env) ─────────────────
+
+@router.get('/providers/status', auth=JWTAuth(), response=dict)
 def providers_status(request):
     from django.conf import settings
+
+    user_keys = {uk.provider: uk.credentials
+                 for uk in UserApiKey.objects.filter(user=request.user)}
+
+    def _has_replicate():
+        creds = user_keys.get('replicate', {})
+        return bool(creds.get('token')) or bool(settings.REPLICATE_API_TOKEN)
+
+    def _has_akashml():
+        creds = user_keys.get('akashml', {})
+        return bool(creds.get('token')) or bool(settings.AKASHML_API_KEY)
+
+    def _has_r2():
+        creds = user_keys.get('r2', {})
+        if creds.get('account_id') and creds.get('access_key_id') and creds.get('secret_access_key'):
+            return True
+        return bool(settings.R2_ACCOUNT_ID and settings.R2_ACCESS_KEY_ID and settings.R2_SECRET_ACCESS_KEY)
+
     return {
-        'replicate': bool(settings.REPLICATE_API_TOKEN),
-        'akashml': bool(settings.AKASHML_API_KEY),
-        'r2': bool(settings.R2_ACCOUNT_ID and settings.R2_ACCESS_KEY_ID and settings.R2_SECRET_ACCESS_KEY),
+        'replicate': _has_replicate(),
+        'akashml': _has_akashml(),
+        'r2': _has_r2(),
     }

@@ -212,91 +212,219 @@ function ProfileTab() {
 
 // ── API Keys tab ──────────────────────────────────────────────────────────────
 
-const PROVIDERS = [
-  {
-    key: 'replicate' as const,
-    envVar: 'REPLICATE_API_TOKEN',
-    label: 'Replicate',
-    description: 'Image & video generation',
-    docsUrl: 'https://replicate.com/account/api-tokens',
-  },
-  {
-    key: 'akashml' as const,
-    envVar: 'AKASHML_API_KEY',
-    label: 'AkashML',
-    description: 'Alternative compute provider',
-    docsUrl: 'https://akash.network/',
-  },
-  {
-    key: 'r2' as const,
-    envVar: 'R2_ACCOUNT_ID + R2_ACCESS_KEY_ID + R2_SECRET_ACCESS_KEY',
-    label: 'Cloudflare R2',
-    description: 'Asset storage (generated files)',
-    docsUrl: 'https://developers.cloudflare.com/r2/get-started/',
-  },
+type StoredKey = { provider: string; configured: boolean; preview: Record<string, string> | null };
+
+const PROVIDER_FIELDS: Record<string, { id: string; label: string; placeholder: string; secret?: boolean }[]> = {
+  replicate: [
+    { id: 'token', label: 'API Token', placeholder: 'r8_…', secret: true },
+  ],
+  akashml: [
+    { id: 'token', label: 'API Key', placeholder: 'Your AkashML key', secret: true },
+    { id: 'api_url', label: 'API URL', placeholder: 'https://api.akash.network/…' },
+  ],
+  r2: [
+    { id: 'account_id', label: 'Account ID', placeholder: 'abc123…' },
+    { id: 'access_key_id', label: 'Access Key ID', placeholder: 'R2 access key' },
+    { id: 'secret_access_key', label: 'Secret Access Key', placeholder: 'R2 secret', secret: true },
+    { id: 'bucket_name', label: 'Bucket Name', placeholder: 'my-bucket' },
+    { id: 'public_url', label: 'Public URL (optional)', placeholder: 'https://cdn.example.com' },
+  ],
+};
+
+const PROVIDER_META = [
+  { key: 'replicate', label: 'Replicate', description: 'Image & video generation', docsUrl: 'https://replicate.com/account/api-tokens' },
+  { key: 'akashml', label: 'AkashML', description: 'Alternative compute provider', docsUrl: 'https://akash.network/' },
+  { key: 'r2', label: 'Cloudflare R2', description: 'Asset storage (generated files)', docsUrl: 'https://developers.cloudflare.com/r2/api-tokens/' },
 ];
 
-function ApiKeysTab() {
-  const [status, setStatus] = useState<{ replicate: boolean; akashml: boolean; r2: boolean } | null>(null);
+function ProviderRow({ providerKey, label, description, docsUrl, storedKey, onRefresh }: {
+  providerKey: string; label: string; description: string; docsUrl: string;
+  storedKey: StoredKey | null; onRefresh: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    djangoApi.providersStatus().then(setStatus);
-  }, []);
+  const fields = PROVIDER_FIELDS[providerKey] ?? [];
+  const configured = storedKey?.configured ?? false;
+  const preview = storedKey?.preview;
+
+  function startEdit() {
+    setValues({});
+    setOpen(true);
+  }
+
+  async function save() {
+    const filled: Record<string, string> = {};
+    for (const f of fields) {
+      if (!f.id.includes('optional') && values[f.id]) filled[f.id] = values[f.id];
+      else if (values[f.id]) filled[f.id] = values[f.id];
+    }
+    const requiredFields = fields.filter(f => !f.label.includes('optional'));
+    const missing = requiredFields.filter(f => !filled[f.id]);
+    if (missing.length) { toast.error(`Fill in: ${missing.map(f => f.label).join(', ')}`); return; }
+
+    setSaving(true);
+    try {
+      await djangoApi.saveApiKey(providerKey, filled);
+      toast.success(`${label} key saved`);
+      setOpen(false);
+      onRefresh();
+    } catch {
+      toast.error('Failed to save key');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function remove() {
+    setRemoving(true);
+    try {
+      await djangoApi.deleteApiKey(providerKey);
+      toast.success(`${label} key removed`);
+      onRefresh();
+    } catch {
+      toast.error('Failed to remove key');
+    } finally {
+      setRemoving(false);
+    }
+  }
 
   return (
-    <div className="space-y-3">
-      <p className="text-sm text-muted-foreground">
-        Configured in your{' '}
-        <code className="text-xs bg-muted px-1 py-0.5 rounded">.env</code> file on the server.
-        Restart the dev server after changing them.
-      </p>
-
-      <div className="rounded-xl border border-border bg-card divide-y divide-border px-4">
-        {PROVIDERS.map(({ key, envVar, label, description, docsUrl }) => {
-          const configured = status?.[key];
-          return (
-            <div key={key} className="flex items-center justify-between py-3.5 gap-4">
-              <div className="flex items-center gap-3 min-w-0">
-                {status === null ? (
-                  <Skeleton className="w-4 h-4 rounded-full" />
-                ) : configured ? (
-                  <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
-                ) : (
-                  <XCircle className="w-4 h-4 text-red-400 shrink-0" />
-                )}
-                <div className="min-w-0">
-                  <p className="text-sm font-medium">{label}</p>
-                  <p className="text-xs text-muted-foreground/60">{description}</p>
-                  <p className="text-xs text-muted-foreground/40 font-mono mt-0.5">{envVar}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 shrink-0">
-                {status !== null && (
-                  <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${
-                    configured
-                      ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30'
-                      : 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30'
-                  }`}>
-                    {configured ? 'Configured' : 'Missing'}
-                  </span>
-                )}
-                <a
-                  href={docsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-cyan-600 hover:underline"
-                >
-                  Get key →
-                </a>
-              </div>
-            </div>
-          );
-        })}
+    <div className="py-4 space-y-3">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          {configured
+            ? <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+            : <XCircle className="w-4 h-4 text-red-400 shrink-0" />}
+          <div className="min-w-0">
+            <p className="text-sm font-medium">{label}</p>
+            <p className="text-xs text-muted-foreground/60">{description}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${
+            configured
+              ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30'
+              : 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30'
+          }`}>
+            {configured ? 'Configured' : 'Not set'}
+          </span>
+          {configured ? (
+            <Button size="xs" variant="outline" onClick={startEdit}>Update</Button>
+          ) : (
+            <Button size="xs" variant="outline" onClick={startEdit}>Configure</Button>
+          )}
+          {configured && (
+            <Button size="xs" variant="ghost" className="text-red-500 hover:text-red-600" onClick={remove} disabled={removing}>
+              {removing ? '…' : 'Remove'}
+            </Button>
+          )}
+        </div>
       </div>
 
-      <p className="text-xs text-muted-foreground/60">
-        API keys are read from environment variables and never stored in the database.
+      {/* Masked preview */}
+      {configured && preview && !open && (
+        <div className="grid gap-1.5 pl-7">
+          {Object.entries(preview).map(([k, v]) => (
+            <div key={k} className="flex items-center gap-2 text-xs">
+              <span className="text-muted-foreground/50 w-28 truncate">{k}</span>
+              <code className="font-mono text-muted-foreground">{v}</code>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Edit form */}
+      {open && (
+        <div className="pl-7 space-y-2.5">
+          {fields.map((f) => (
+            <div key={f.id} className="space-y-1">
+              <Label className="text-xs">{f.label}</Label>
+              <div className="relative">
+                <Input
+                  type={f.secret && !showSecrets[f.id] ? 'password' : 'text'}
+                  placeholder={f.placeholder}
+                  value={values[f.id] ?? ''}
+                  onChange={(e) => setValues((v) => ({ ...v, [f.id]: e.target.value }))}
+                  className="text-sm font-mono pr-9"
+                />
+                {f.secret && (
+                  <button type="button"
+                    onClick={() => setShowSecrets((s) => ({ ...s, [f.id]: !s[f.id] }))}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    {showSecrets[f.id] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+          <div className="flex gap-2 pt-1">
+            <Button size="sm" onClick={save} disabled={saving}
+              className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white">
+              {saving ? 'Saving…' : 'Save'}
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <a href={docsUrl} target="_blank" rel="noopener noreferrer"
+              className="ml-auto text-xs text-cyan-600 hover:underline self-center">
+              Get key →
+            </a>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ApiKeysTab() {
+  const [keys, setKeys] = useState<StoredKey[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  async function refresh() {
+    setLoading(true);
+    try {
+      const data = await djangoApi.listApiKeys();
+      setKeys(data);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { refresh(); }, []);
+
+  function getKey(provider: string): StoredKey | null {
+    return keys.find((k) => k.provider === provider) ?? null;
+  }
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm text-muted-foreground">
+        Keys are stored securely in the database and used only for your generations.
+        Server environment variables serve as a fallback when no personal key is set.
       </p>
+      <div className="rounded-xl border border-border bg-card divide-y divide-border px-4">
+        {loading
+          ? PROVIDER_META.map(({ key }) => (
+              <div key={key} className="py-4 flex items-center gap-3">
+                <Skeleton className="w-4 h-4 rounded-full" />
+                <Skeleton className="h-4 w-40" />
+              </div>
+            ))
+          : PROVIDER_META.map(({ key, label, description, docsUrl }) => (
+              <ProviderRow
+                key={key}
+                providerKey={key}
+                label={label}
+                description={description}
+                docsUrl={docsUrl}
+                storedKey={getKey(key)}
+                onRefresh={refresh}
+              />
+            ))
+        }
+      </div>
     </div>
   );
 }

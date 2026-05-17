@@ -6,14 +6,18 @@ from .base import BaseProvider, SubmitInput, JobStatus
 class AkashMLProvider(BaseProvider):
     name = 'akashml'
 
+    def __init__(self, api_key: str | None = None, api_url: str | None = None):
+        self._api_key = api_key or getattr(settings, 'AKASHML_API_KEY', '')
+        self._api_url = api_url or getattr(settings, 'AKASHML_API_URL', '')
+
     def _headers(self) -> dict:
         return {
-            'Authorization': f'Bearer {settings.AKASHML_API_KEY}',
+            'Authorization': f'Bearer {self._api_key}',
             'Content-Type': 'application/json',
         }
 
     def _base(self) -> str:
-        return settings.AKASHML_API_URL.rstrip('/')
+        return self._api_url.rstrip('/')
 
     def submit(self, inp: SubmitInput) -> str:
         from providers.registry import MODEL_REGISTRY
