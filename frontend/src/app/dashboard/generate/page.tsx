@@ -10,7 +10,7 @@ import { ModelPicker } from '@/components/generate/ModelPicker';
 import { JobCard } from '@/components/generate/JobCard';
 import { AssetPreview } from '@/components/generate/AssetPreview';
 import { PromptBuilder } from '@/components/prompt-builder/PromptBuilder';
-import { useGenerationStream } from '@/hooks/use-generation-stream';
+import { useGenerationPoll } from '@/hooks/use-generation-poll';
 import { modelsByModality, modelRegistry } from '@/lib/models/registry';
 import { djangoApi } from '@/lib/api';
 import type { BuilderOutput } from '@/lib/prompt-assembler';
@@ -83,7 +83,7 @@ function GeneratePageInner() {
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [jobHistory, setJobHistory] = useState<Array<{ id: string; status: JobStatus }>>([]);
 
-  const stream = useGenerationStream(activeJobId);
+  const stream = useGenerationPoll(activeJobId);
 
   const handleModeChange = useCallback((mode: Modality) => {
     setModality(mode);

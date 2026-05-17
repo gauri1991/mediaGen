@@ -197,6 +197,12 @@ export const djangoApi = {
     return res.json();
   },
 
+  async getGeneration(id: string) {
+    const res = await apiFetch(`/generations/${id}`);
+    if (!res.ok) return null;
+    return res.json();
+  },
+
   async cancelGeneration(id: string) {
     const res = await apiFetch(`/generations/${id}/cancel`, { method: 'POST' });
     if (!res.ok) throw new Error('Failed to cancel generation');
