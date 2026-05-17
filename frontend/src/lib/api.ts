@@ -83,7 +83,10 @@ export async function apiFetch(
       return apiFetch(path, init, false);
     }
     tokens.clear();
-    window.location.href = '/login';
+    // Only hard-redirect if we're not already on an auth page (avoids silent loops)
+    if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/signup')) {
+      window.location.href = '/login';
+    }
   }
 
   return res;

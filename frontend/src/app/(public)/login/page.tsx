@@ -61,7 +61,7 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="rounded-2xl border bg-card shadow-2xl p-8">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form method="post" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* Email */}
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>

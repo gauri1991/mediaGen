@@ -88,7 +88,7 @@ export function CreateProjectModal({ open, onClose, onSaved, project }: Props) {
         <DialogHeader>
           <DialogTitle>{isEdit ? 'Edit project' : 'New project'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
+        <form method="post" onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
           <div className="space-y-1.5">
             <Label htmlFor="name">Name</Label>
             <Input id="name" placeholder="Q4 Campaign" {...register('name')} />
