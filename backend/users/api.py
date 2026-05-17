@@ -61,7 +61,7 @@ def list_api_keys(request):
 
 @router.put('/api-keys/{provider}', response=ApiKeyOut, auth=JWTAuth())
 def save_api_key(request, provider: str, data: ApiKeyIn):
-    VALID = {'replicate', 'akashml', 'r2'}
+    VALID = {'replicate', 'akashml', 'fal', 'runpod', 'r2'}
     if provider not in VALID:
         raise HttpError(400, f'Unknown provider: {provider}')
     if not data.credentials:
@@ -100,6 +100,16 @@ def providers_status(request):
         creds = user_keys.get('akashml', {})
         return bool(creds.get('token')) or bool(settings.AKASHML_API_KEY)
 
+    def _has_fal():
+        creds = user_keys.get('fal', {})
+        return bool(creds.get('api_key')) or bool(getattr(settings, 'FAL_KEY', ''))
+
+    def _has_runpod():
+        creds = user_keys.get('runpod', {})
+        has_db = bool(creds.get('api_key')) and bool(creds.get('endpoint_id'))
+        has_env = bool(getattr(settings, 'RUNPOD_API_KEY', '')) and bool(getattr(settings, 'RUNPOD_ENDPOINT_ID', ''))
+        return has_db or has_env
+
     def _has_r2():
         creds = user_keys.get('r2', {})
         if creds.get('account_id') and creds.get('access_key_id') and creds.get('secret_access_key'):
@@ -109,5 +119,7 @@ def providers_status(request):
     return {
         'replicate': _has_replicate(),
         'akashml': _has_akashml(),
+        'fal': _has_fal(),
+        'runpod': _has_runpod(),
         'r2': _has_r2(),
     }

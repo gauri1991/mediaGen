@@ -55,11 +55,13 @@ def create_generation(request, data: GenerationCreate):
 # ── List ──────────────────────────────────────────────────────────────────────
 
 @router.get('', response=list[GenerationOut])
-def list_generations(request, modality: Optional[str] = None, limit: int = 50):
+def list_generations(request, modality: Optional[str] = None, status: Optional[str] = None, limit: int = 50):
     limit = min(limit, 200)
     qs = Generation.objects.filter(user=request.user).prefetch_related('assets')
     if modality:
         qs = qs.filter(modality=modality)
+    if status:
+        qs = qs.filter(status=status)
     return [GenerationOut.from_orm(g) for g in qs[:limit]]
 
 
@@ -234,6 +236,29 @@ def cancel_generation(request, generation_id: UUID):
     gen.save(update_fields=['status', 'error_message'])
 
     return {'ok': True}
+
+
+@router.delete('/{generation_id}', response={204: None})
+def delete_generation(request, generation_id: UUID):
+    try:
+        gen = Generation.objects.get(id=generation_id, user=request.user)
+    except Generation.DoesNotExist:
+        raise HttpError(404, 'Not found')
+
+    if gen.status in (Generation.Status.QUEUED, Generation.Status.PROCESSING):
+        if gen.celery_task_id:
+            from config.celery import app as celery_app
+            celery_app.control.revoke(gen.celery_task_id, terminate=True)
+        if gen.provider_job_id:
+            try:
+                provider = resolve_provider(gen.model_slug, gen.provider)
+                if hasattr(provider, 'cancel'):
+                    provider.cancel(gen.provider_job_id)
+            except Exception:
+                pass
+
+    gen.delete()
+    return 204, None
 
 
 # ── Assets ────────────────────────────────────────────────────────────────────

@@ -40,6 +40,9 @@ export type ModelCapabilities = {
   supportsLyrics?: boolean;
   supportsReferenceTrack?: boolean;
 
+  // When true: assembler sends aspect_ratio param; when false: sends width+height
+  usesAspectRatioParam?: boolean;
+
   supportedAspectRatios: string[];
 
   parameters: {
@@ -92,12 +95,39 @@ export const CAPABILITIES_REGISTRY: Record<string, ModelCapabilities> = {
   'flux-schnell': {
     slug: 'flux-schnell', label: 'Flux.1 Schnell', providerLabel: 'Black Forest Labs', modality: 'image',
     supportsNegativePrompt: false, supportsSeed: true,
-    supportsPromptUpsampling: true,
+    supportsPromptUpsampling: false, supportsSafetyTolerance: false,
     supportedAspectRatios: IMG_RATIOS,
     parameters: {
       steps: { min: 1, max: 4, default: 4 },
       numImages: { min: 1, max: 4, default: 1 },
     },
+  },
+  'flux-1.1-pro': {
+    slug: 'flux-1.1-pro', label: 'Flux 1.1 Pro', providerLabel: 'Black Forest Labs', modality: 'image',
+    supportsNegativePrompt: false, supportsSeed: true,
+    supportsPromptUpsampling: true, supportsSafetyTolerance: true,
+    supportedAspectRatios: IMG_RATIOS,
+    parameters: {
+      numImages: { min: 1, max: 4, default: 1 },
+      safetyTolerance: { min: 0, max: 6, default: 2 },
+    },
+  },
+  'flux-1.1-pro-ultra': {
+    slug: 'flux-1.1-pro-ultra', label: 'Flux 1.1 Pro Ultra', providerLabel: 'Black Forest Labs', modality: 'image',
+    supportsNegativePrompt: false, supportsSeed: true,
+    supportsPromptUpsampling: true, supportsSafetyTolerance: true,
+    usesAspectRatioParam: true,
+    supportedAspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '21:9'],
+    parameters: {
+      safetyTolerance: { min: 0, max: 6, default: 2 },
+    },
+  },
+  'ideogram-v3-turbo': {
+    slug: 'ideogram-v3-turbo', label: 'Ideogram v3 Turbo', providerLabel: 'Ideogram', modality: 'image',
+    supportsNegativePrompt: false, supportsSeed: true,
+    usesAspectRatioParam: true,
+    supportedAspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4', '10:16', '16:10'],
+    parameters: {},
   },
   'flux-kontext': {
     slug: 'flux-kontext', label: 'FLUX.1 Kontext', providerLabel: 'Black Forest Labs', modality: 'image',

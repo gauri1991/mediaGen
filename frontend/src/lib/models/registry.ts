@@ -24,6 +24,7 @@ export const modelRegistry: Record<string, ModelConfig> = {
     defaultProvider: 'replicate',
     providers: {
       replicate: { modelId: 'black-forest-labs/flux-schnell', costEstimate: 0.003 },
+      fal:       { modelId: 'fal-ai/flux/schnell', costEstimate: 0.003 },
     },
     defaults: {
       width: 1024, height: 1024,
@@ -38,6 +39,7 @@ export const modelRegistry: Record<string, ModelConfig> = {
     defaultProvider: 'replicate',
     providers: {
       replicate: { modelId: 'black-forest-labs/flux-dev', costEstimate: 0.025 },
+      fal:       { modelId: 'fal-ai/flux/dev', costEstimate: 0.025 },
       akashml:   { modelId: 'flux.1-dev', costEstimate: 0.012 },
     },
     defaults: {
@@ -53,6 +55,7 @@ export const modelRegistry: Record<string, ModelConfig> = {
     defaultProvider: 'replicate',
     providers: {
       replicate: { modelId: 'black-forest-labs/flux-1.1-pro', costEstimate: 0.04 },
+      fal:       { modelId: 'fal-ai/flux-pro/v1.1', costEstimate: 0.04 },
     },
     defaults: {
       width: 1024, height: 1024,
@@ -67,6 +70,7 @@ export const modelRegistry: Record<string, ModelConfig> = {
     defaultProvider: 'replicate',
     providers: {
       replicate: { modelId: 'black-forest-labs/flux-1.1-pro-ultra', costEstimate: 0.06 },
+      fal:       { modelId: 'fal-ai/flux-pro/v1.1-ultra', costEstimate: 0.06 },
     },
     defaults: {
       aspect_ratio: '1:1',
@@ -96,6 +100,7 @@ export const modelRegistry: Record<string, ModelConfig> = {
     defaultProvider: 'replicate',
     providers: {
       replicate: { modelId: 'stability-ai/stable-diffusion-3.5-large', costEstimate: 0.035 },
+      fal:       { modelId: 'fal-ai/stable-diffusion-v35-large', costEstimate: 0.035 },
     },
     defaults: {
       width: 1024, height: 1024,
@@ -125,6 +130,7 @@ export const modelRegistry: Record<string, ModelConfig> = {
     defaultProvider: 'replicate',
     providers: {
       replicate: { modelId: 'ideogram-ai/ideogram-v3-turbo', costEstimate: 0.03 },
+      fal:       { modelId: 'fal-ai/ideogram/v3-turbo', costEstimate: 0.03 },
     },
     defaults: {
       aspect_ratio: '1:1',
@@ -165,6 +171,7 @@ export const modelRegistry: Record<string, ModelConfig> = {
     defaultProvider: 'replicate',
     providers: {
       replicate: { modelId: 'lightricks/ltx-video', costEstimate: 0.08 },
+      fal:       { modelId: 'fal-ai/ltx-video', costEstimate: 0.08 },
     },
     defaults: {
       width: 768, height: 512, num_frames: 97,
@@ -267,6 +274,7 @@ export const modelRegistry: Record<string, ModelConfig> = {
     defaultProvider: 'replicate',
     providers: {
       replicate: { modelId: 'meta/musicgen', costEstimate: 0.016 },
+      fal:       { modelId: 'fal-ai/musicgen', costEstimate: 0.016 },
     },
     defaults: {
       duration: 30, model_version: 'stereo-large',
@@ -308,6 +316,7 @@ export const modelRegistry: Record<string, ModelConfig> = {
     defaultProvider: 'replicate',
     providers: {
       replicate: { modelId: 'lucataco/f5-tts', costEstimate: 0.008 },
+      fal:       { modelId: 'fal-ai/f5-tts', costEstimate: 0.008 },
     },
     defaults: { speed: 1.0, nfe_step: 32 },
   },

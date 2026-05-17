@@ -18,6 +18,8 @@ class UserApiKey(models.Model):
     PROVIDER_CHOICES = [
         ('replicate', 'Replicate'),
         ('akashml', 'AkashML'),
+        ('fal', 'fal.ai'),
+        ('runpod', 'RunPod'),
         ('r2', 'Cloudflare R2'),
     ]
 

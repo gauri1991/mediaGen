@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Sparkles, Image, Video, Music, CheckCircle2, XCircle, Clock, Loader2, ChevronUp, ChevronDown, FolderPlus } from 'lucide-react';
+import { Sparkles, Image, Video, Music, CheckCircle2, XCircle, Clock, Loader2, ChevronUp, ChevronDown, FolderPlus, Trash2 } from 'lucide-react';
 import { AddToProjectModal } from '@/components/projects/AddToProjectModal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 interface Asset {
   id: string;
@@ -74,6 +75,8 @@ function HistoryPageInner() {
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [loading, setLoading] = useState(true);
   const [addToProjectGenId, setAddToProjectGenId] = useState<string | null>(null);
+  const [deleteGenId, setDeleteGenId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   function updateParam(key: string, value: string) {
     const p = new URLSearchParams(searchParams.toString());
@@ -94,6 +97,21 @@ function HistoryPageInner() {
       p.set('dir', 'desc');
     }
     router.replace(`?${p}`);
+  }
+
+  async function handleDelete() {
+    if (!deleteGenId) return;
+    setIsDeleting(true);
+    try {
+      const { djangoApi } = await import('@/lib/api');
+      await djangoApi.deleteGeneration(deleteGenId);
+      setGenerations((prev) => prev.filter((g) => g.id !== deleteGenId));
+      setDeleteGenId(null);
+    } catch {
+      // leave dialog open on error
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   useEffect(() => {
@@ -289,14 +307,26 @@ function HistoryPageInner() {
                       <div className="text-xs text-muted-foreground/40">{new Date(gen.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </td>
                     <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={() => setAddToProjectGenId(gen.id)}
-                        className="text-muted-foreground/40 hover:text-cyan-500 transition-colors"
-                        aria-label="Add to project"
-                      >
-                        <FolderPlus className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setAddToProjectGenId(gen.id)}
+                          className="text-muted-foreground/40 hover:text-cyan-500 transition-colors"
+                          aria-label="Add to project"
+                        >
+                          <FolderPlus className="w-4 h-4" />
+                        </button>
+                        {(gen.status === 'queued' || gen.status === 'completed') && (
+                          <button
+                            type="button"
+                            onClick={() => setDeleteGenId(gen.id)}
+                            className="text-muted-foreground/40 hover:text-red-500 transition-colors"
+                            aria-label="Delete queued job"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -311,6 +341,39 @@ function HistoryPageInner() {
         generationId={addToProjectGenId ?? ''}
         onClose={() => setAddToProjectGenId(null)}
       />
+
+      <Dialog open={deleteGenId !== null} onOpenChange={(open) => { if (!open && !isDeleting) setDeleteGenId(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-500">
+              <Trash2 className="w-4 h-4" />
+              Delete queued job?
+            </DialogTitle>
+            <DialogDescription>
+              This will permanently remove the job from your history and cannot be recovered.
+              {deleteGenId && generations.find(g => g.id === deleteGenId)?.status === 'queued' && ' The queued task will also be cancelled.'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <button
+              type="button"
+              onClick={() => setDeleteGenId(null)}
+              disabled={isDeleting}
+              className="flex-1 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted/50 transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="flex-1 rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600 transition-colors disabled:opacity-50"
+            >
+              {isDeleting ? 'Deleting…' : 'Delete'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

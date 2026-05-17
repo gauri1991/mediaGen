@@ -9,10 +9,11 @@ MODEL_REGISTRY: dict[str, dict] = {
         'default_provider': 'replicate',
         'providers': {
             'replicate': {'model_id': 'black-forest-labs/flux-schnell', 'cost_estimate': 0.003},
+            'fal':       {'model_id': 'fal-ai/flux/schnell',            'cost_estimate': 0.003},
         },
         'defaults': {
             'width': 1024, 'height': 1024,
-            'num_inference_steps': 4,
+            'steps': 4,           # Replicate flux-schnell uses 'steps', not 'num_inference_steps'
             'output_format': 'webp', 'output_quality': 90,
         },
     },
@@ -23,6 +24,7 @@ MODEL_REGISTRY: dict[str, dict] = {
         'providers': {
             'replicate': {'model_id': 'black-forest-labs/flux-dev', 'cost_estimate': 0.025},
             'akashml':   {'model_id': 'flux.1-dev',                 'cost_estimate': 0.012},
+            'fal':       {'model_id': 'fal-ai/flux/dev',            'cost_estimate': 0.025},
         },
         'defaults': {
             'width': 1024, 'height': 1024,
@@ -36,6 +38,7 @@ MODEL_REGISTRY: dict[str, dict] = {
         'default_provider': 'replicate',
         'providers': {
             'replicate': {'model_id': 'black-forest-labs/flux-1.1-pro', 'cost_estimate': 0.04},
+            'fal':       {'model_id': 'fal-ai/flux-pro/v1.1',           'cost_estimate': 0.04},
         },
         'defaults': {
             'width': 1024, 'height': 1024,
@@ -49,6 +52,7 @@ MODEL_REGISTRY: dict[str, dict] = {
         'default_provider': 'replicate',
         'providers': {
             'replicate': {'model_id': 'black-forest-labs/flux-1.1-pro-ultra', 'cost_estimate': 0.06},
+            'fal':       {'model_id': 'fal-ai/flux-pro/v1.1-ultra',           'cost_estimate': 0.06},
         },
         'defaults': {
             'aspect_ratio': '1:1',
@@ -75,6 +79,7 @@ MODEL_REGISTRY: dict[str, dict] = {
         'default_provider': 'replicate',
         'providers': {
             'replicate': {'model_id': 'stability-ai/stable-diffusion-3.5-large', 'cost_estimate': 0.035},
+            'fal':       {'model_id': 'fal-ai/stable-diffusion-v35-large',        'cost_estimate': 0.035},
         },
         'defaults': {
             'width': 1024, 'height': 1024,
@@ -101,6 +106,7 @@ MODEL_REGISTRY: dict[str, dict] = {
         'default_provider': 'replicate',
         'providers': {
             'replicate': {'model_id': 'ideogram-ai/ideogram-v3-turbo', 'cost_estimate': 0.03},
+            'fal':       {'model_id': 'fal-ai/ideogram/v3-turbo',      'cost_estimate': 0.03},
         },
         'defaults': {
             'aspect_ratio': '1:1',
@@ -115,6 +121,7 @@ MODEL_REGISTRY: dict[str, dict] = {
         'default_provider': 'replicate',
         'providers': {
             'replicate': {'model_id': 'lightricks/ltx-video', 'cost_estimate': 0.08},
+            'fal':       {'model_id': 'fal-ai/ltx-video',    'cost_estimate': 0.08},
         },
         'defaults': {
             'width': 768, 'height': 512, 'num_frames': 97,
@@ -189,7 +196,8 @@ MODEL_REGISTRY: dict[str, dict] = {
         'modality': 'audio',
         'default_provider': 'replicate',
         'providers': {
-            'replicate': {'model_id': 'meta/musicgen', 'cost_estimate': 0.016},
+            'replicate': {'model_id': 'meta/musicgen',   'cost_estimate': 0.016},
+            'fal':       {'model_id': 'fal-ai/musicgen', 'cost_estimate': 0.016},
         },
         'defaults': {
             'duration': 30, 'model_version': 'stereo-large',
@@ -226,6 +234,7 @@ MODEL_REGISTRY: dict[str, dict] = {
         'default_provider': 'replicate',
         'providers': {
             'replicate': {'model_id': 'lucataco/f5-tts', 'cost_estimate': 0.008},
+            'fal':       {'model_id': 'fal-ai/f5-tts',  'cost_estimate': 0.008},
         },
         'defaults': {'speed': 1.0, 'nfe_step': 32},
     },
@@ -242,14 +251,22 @@ def resolve_provider(model_slug: str, override: str | None = None, user=None):
     from django.conf import settings
     from providers.replicate import ReplicateProvider
     from providers.akashml import AkashMLProvider
+    from providers.fal import FalProvider
+    from providers.runpod import RunPodProvider
 
     replicate_token = getattr(settings, 'REPLICATE_API_TOKEN', '')
     akashml_key = getattr(settings, 'AKASHML_API_KEY', '')
     akashml_url = getattr(settings, 'AKASHML_API_URL', '')
+    fal_key = getattr(settings, 'FAL_KEY', '')
+    runpod_api_key = getattr(settings, 'RUNPOD_API_KEY', '')
+    runpod_endpoint_id = getattr(settings, 'RUNPOD_ENDPOINT_ID', '')
 
     if user and getattr(user, 'is_authenticated', False):
         from users.models import UserApiKey
-        for uk in UserApiKey.objects.filter(user=user, provider__in=['replicate', 'akashml']):
+        for uk in UserApiKey.objects.filter(
+            user=user,
+            provider__in=['replicate', 'akashml', 'fal', 'runpod'],
+        ):
             creds = uk.credentials
             if uk.provider == 'replicate' and creds.get('token'):
                 replicate_token = creds['token']
@@ -258,10 +275,19 @@ def resolve_provider(model_slug: str, override: str | None = None, user=None):
                     akashml_key = creds['token']
                 if creds.get('api_url'):
                     akashml_url = creds['api_url']
+            elif uk.provider == 'fal' and creds.get('api_key'):
+                fal_key = creds['api_key']
+            elif uk.provider == 'runpod':
+                if creds.get('api_key'):
+                    runpod_api_key = creds['api_key']
+                if creds.get('endpoint_id'):
+                    runpod_endpoint_id = creds['endpoint_id']
 
     _providers = {
         'replicate': ReplicateProvider(token=replicate_token),
         'akashml': AkashMLProvider(api_key=akashml_key, api_url=akashml_url),
+        'fal': FalProvider(api_key=fal_key),
+        'runpod': RunPodProvider(api_key=runpod_api_key, endpoint_id=runpod_endpoint_id),
     }
     model = get_model(model_slug)
     name = override or model['default_provider']

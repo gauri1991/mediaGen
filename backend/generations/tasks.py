@@ -79,6 +79,11 @@ def submit_generation(self, generation_id: str):
         if gen.negative_prompt:
             params['negative_prompt'] = gen.negative_prompt
 
+        # Models that use 'steps' instead of 'num_inference_steps' on Replicate
+        _STEPS_KEY_MODELS = {'flux-schnell', 'stable-audio-2.5'}
+        if gen.model_slug in _STEPS_KEY_MODELS and 'num_inference_steps' in params:
+            params.setdefault('steps', params.pop('num_inference_steps'))
+
         provider_job_id = provider.submit(SubmitInput(
             model_slug=gen.model_slug,
             modality=gen.modality,

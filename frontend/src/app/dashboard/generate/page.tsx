@@ -104,8 +104,10 @@ function GeneratePageInner() {
 
       const params: Record<string, unknown> = { ...builderOutput.params };
 
-      // Ensure width/height present for image/video if not in builder params
-      if ((modality === 'image' || modality === 'video') && !params.width) {
+      // For image/video: the assembler already handles width/height vs aspect_ratio
+      // based on capabilities. Only apply a fallback for models with no caps entry
+      // that also didn't produce dimensions (shouldn't happen in practice).
+      if ((modality === 'image' || modality === 'video') && !params.width && !params.aspect_ratio) {
         params.width = 1024;
         params.height = 1024;
       }

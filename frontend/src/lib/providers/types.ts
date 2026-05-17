@@ -1,4 +1,4 @@
-export type ProviderName = 'replicate' | 'akashml' | 'modal' | 'runpod';
+export type ProviderName = 'replicate' | 'akashml' | 'fal' | 'runpod' | 'modal';
 
 export interface SubmitInput {
   modelSlug: string;

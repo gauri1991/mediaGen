@@ -68,7 +68,7 @@ export function PromptBuilder({ modality, modelSlug, disabled = false, onChange 
   // ── Assemble output ──────────────────────────────────────────────────────────
 
   const assembled: BuilderOutput = (() => {
-    if (modality === 'image') return assembleImage(imageState);
+    if (modality === 'image') return assembleImage(imageState, caps);
     if (modality === 'video') return assembleVideo(videoState);
     return assembleAudio(audioState);
   })();

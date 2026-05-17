@@ -147,8 +147,8 @@ export const djangoApi = {
 
   async providersStatus() {
     const res = await apiFetch('/users/providers/status');
-    if (!res.ok) return { replicate: false, akashml: false, r2: false };
-    return res.json() as Promise<{ replicate: boolean; akashml: boolean; r2: boolean }>;
+    if (!res.ok) return { replicate: false, fal: false, runpod: false, akashml: false, r2: false };
+    return res.json() as Promise<{ replicate: boolean; fal: boolean; runpod: boolean; akashml: boolean; r2: boolean }>;
   },
 
   async listApiKeys() {
@@ -188,10 +188,11 @@ export const djangoApi = {
     return res.json() as Promise<{ id: string; status: string }>;
   },
 
-  async listGenerations(params?: { modality?: string; limit?: number }) {
+  async listGenerations(params?: { modality?: string; limit?: number; status?: string }) {
     const q = new URLSearchParams();
     if (params?.modality) q.set('modality', params.modality);
     if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.status) q.set('status', params.status);
     const res = await apiFetch(`/generations?${q}`);
     if (!res.ok) return [];
     return res.json();
@@ -207,6 +208,11 @@ export const djangoApi = {
     const res = await apiFetch(`/generations/${id}/cancel`, { method: 'POST' });
     if (!res.ok) throw new Error('Failed to cancel generation');
     return res.json();
+  },
+
+  async deleteGeneration(id: string) {
+    const res = await apiFetch(`/generations/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete generation');
   },
 
   // Assets

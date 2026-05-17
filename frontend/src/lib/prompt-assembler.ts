@@ -1,5 +1,6 @@
-// Pure function: form state + model slug → { prompt, negativePrompt, params }
-// No side effects. Import getCapabilities only for param defaults.
+// Pure function: form state + optional capabilities → { prompt, negativePrompt, params }
+// No side effects.
+import type { ModelCapabilities } from '@/lib/models/capabilities';
 
 export type BuilderMode = 'guided' | 'raw' | 'hybrid';
 export type AudioSubType = 'music' | 'speech' | 'sfx';
@@ -250,25 +251,55 @@ function assembleSfxPrompt(state: SfxFormState): string {
 
 // ── Main assembler ────────────────────────────────────────────────────────────
 
-export function assembleImage(state: ImageFormState): BuilderOutput {
+export function assembleImage(state: ImageFormState, caps?: ModelCapabilities): BuilderOutput {
   const prompt = assembleImagePrompt(state);
-  const dims = aspectRatioDims(state.aspectRatio);
-  const params: Record<string, unknown> = {
-    width: dims.width,
-    height: dims.height,
-    num_inference_steps: state.steps,
-    guidance: state.guidanceScale,
-    num_outputs: state.numImages,
-    output_format: state.outputFormat,
-  };
+  const params: Record<string, unknown> = {};
+
+  // Dimensions: aspect_ratio models reject width/height; dimension models reject aspect_ratio
+  if (caps?.usesAspectRatioParam) {
+    params.aspect_ratio = state.aspectRatio;
+  } else {
+    const dims = aspectRatioDims(state.aspectRatio);
+    params.width = dims.width;
+    params.height = dims.height;
+  }
+
+  // Only include steps if model supports it; clamp to model max to avoid range errors
+  if (!caps || caps.parameters.steps != null) {
+    const max = caps?.parameters.steps?.max ?? state.steps;
+    params.num_inference_steps = Math.min(state.steps, max);
+  }
+
+  // Only include guidance if model supports it
+  if (!caps || caps.parameters.guidanceScale != null) {
+    params.guidance = state.guidanceScale;
+  }
+
+  // Only include num_outputs if model supports multiple images
+  if (!caps || caps.parameters.numImages != null) {
+    params.num_outputs = state.numImages;
+  }
+
+  params.output_format = state.outputFormat;
+
   if (state.seed !== null) params.seed = state.seed;
-  if (state.safetyTolerance != null) params.safety_tolerance = state.safetyTolerance;
-  if (state.promptUpsampling) params.prompt_upsampling = true;
-  // Midjourney-style params (will be converted to --flags by backend)
+
+  // Only send safety_tolerance for models that support it
+  if (caps?.supportsSafetyTolerance && state.safetyTolerance != null) {
+    params.safety_tolerance = state.safetyTolerance;
+  }
+
+  // Only send prompt_upsampling for models that support it
+  if (caps?.supportsPromptUpsampling && state.promptUpsampling) {
+    params.prompt_upsampling = true;
+  }
+
+  // Midjourney-style params
   if (state.stylize !== 100) params.stylize = state.stylize;
   if (state.chaos > 0) params.chaos = state.chaos;
   if (state.weird > 0) params.weird = state.weird;
   if (state.styleRaw) params.style_raw = true;
+
   return { prompt, negativePrompt: state.negativePrompt, params };
 }
 

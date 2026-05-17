@@ -79,6 +79,7 @@ enum Modality {
 enum Provider {
   replicate
   akashml
+  fal
   modal
   runpod
 }

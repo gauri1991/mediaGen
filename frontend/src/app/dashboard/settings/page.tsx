@@ -218,6 +218,13 @@ const PROVIDER_FIELDS: Record<string, { id: string; label: string; placeholder: 
   replicate: [
     { id: 'token', label: 'API Token', placeholder: 'r8_…', secret: true },
   ],
+  fal: [
+    { id: 'api_key', label: 'API Key', placeholder: 'fal_…', secret: true },
+  ],
+  runpod: [
+    { id: 'api_key', label: 'API Key', placeholder: 'Your RunPod API key', secret: true },
+    { id: 'endpoint_id', label: 'Endpoint ID', placeholder: 'abc123xyz (serverless endpoint)' },
+  ],
   akashml: [
     { id: 'token', label: 'API Key', placeholder: 'Your AkashML key', secret: true },
     { id: 'api_url', label: 'API URL', placeholder: 'https://api.akash.network/…' },
@@ -232,8 +239,10 @@ const PROVIDER_FIELDS: Record<string, { id: string; label: string; placeholder: 
 };
 
 const PROVIDER_META = [
-  { key: 'replicate', label: 'Replicate', description: 'Image & video generation', docsUrl: 'https://replicate.com/account/api-tokens' },
-  { key: 'akashml', label: 'AkashML', description: 'Alternative compute provider', docsUrl: 'https://akash.network/' },
+  { key: 'replicate', label: 'Replicate', description: 'Image, video & audio — hosted models', docsUrl: 'https://replicate.com/account/api-tokens' },
+  { key: 'fal', label: 'fal.ai', description: 'Fast alternative to Replicate — same models, lower latency', docsUrl: 'https://fal.ai/dashboard/keys' },
+  { key: 'runpod', label: 'RunPod Serverless', description: 'Your own deployed model endpoints on serverless GPU', docsUrl: 'https://www.runpod.io/console/serverless' },
+  { key: 'akashml', label: 'AkashML', description: 'Decentralised GPU compute', docsUrl: 'https://akash.network/' },
   { key: 'r2', label: 'Cloudflare R2', description: 'Asset storage (generated files)', docsUrl: 'https://developers.cloudflare.com/r2/api-tokens/' },
 ];
 

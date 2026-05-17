@@ -55,7 +55,7 @@ export default function DashboardPage() {
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      djangoApi.listGenerations({ limit: 6 }),
+      djangoApi.listGenerations({ limit: 6, status: 'completed' }),
       djangoApi.usageSummary(),
     ]).then(([gens, u]) => {
       if (cancelled) return;
@@ -81,15 +81,15 @@ export default function DashboardPage() {
         </div>
       ) : usage && usage.total > 0 ? (
         <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-xl border bg-white p-4">
-            <p className="text-xs text-neutral-500 font-medium uppercase tracking-wide">Total jobs</p>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Total jobs</p>
             <p className="text-2xl font-bold mt-1">{usage.total}</p>
-            <p className="text-xs text-neutral-400 mt-0.5">{usage.completed} completed</p>
+            <p className="text-xs text-muted-foreground/60 mt-0.5">{usage.completed} completed</p>
           </div>
-          <div className="rounded-xl border bg-white p-4">
-            <p className="text-xs text-neutral-500 font-medium uppercase tracking-wide">Total cost</p>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Total cost</p>
             <p className="text-2xl font-bold mt-1">${usage.total_cost.toFixed(4)}</p>
-            <p className="text-xs text-neutral-400 mt-0.5">all time</p>
+            <p className="text-xs text-muted-foreground/60 mt-0.5">all time</p>
           </div>
         </div>
       ) : null}
@@ -144,7 +144,7 @@ export default function DashboardPage() {
                 <Link
                   key={gen.id}
                   href="/dashboard/library"
-                  className="group relative aspect-square rounded-xl overflow-hidden border bg-neutral-50 hover:shadow-md transition-shadow"
+                  className="group relative aspect-square rounded-xl overflow-hidden border border-border bg-muted/50 hover:shadow-md transition-shadow"
                 >
                   {thumb ? (
                     // eslint-disable-next-line @next/next/no-img-element
