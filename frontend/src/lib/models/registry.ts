@@ -14,6 +14,8 @@ export type ModelConfig = {
   }>>;
   // Default parameters shown in the UI for this model
   defaults: Record<string, unknown>;
+  // Coming-soon models are shown in the picker but disabled
+  comingSoon?: boolean;
 };
 
 export const modelRegistry: Record<string, ModelConfig> = {
@@ -146,6 +148,114 @@ export const modelRegistry: Record<string, ModelConfig> = {
       speed: 1.0,
       nfe_step: 32,
     },
+  },
+
+  // ── Coming soon — image ────────────────────────────────────────────────────
+  'flux-kontext': {
+    label: 'FLUX.1 Kontext', modality: 'image', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'flux-2-pro': {
+    label: 'FLUX.2 Pro', modality: 'image', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'sd-3.5-large': {
+    label: 'SD 3.5 Large', modality: 'image', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'sdxl': {
+    label: 'SDXL', modality: 'image', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'midjourney-v8': {
+    label: 'Midjourney V8', modality: 'image', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'dall-e-4': {
+    label: 'DALL-E 4', modality: 'image', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'imagen-4': {
+    label: 'Imagen 4', modality: 'image', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'ideogram-3': {
+    label: 'Ideogram 3.0', modality: 'image', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'firefly-3': {
+    label: 'Adobe Firefly 3', modality: 'image', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+
+  // ── Coming soon — video ────────────────────────────────────────────────────
+  'veo-3.1': {
+    label: 'Veo 3.1', modality: 'video', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'runway-gen4': {
+    label: 'Runway Gen-4.5', modality: 'video', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'kling-3': {
+    label: 'Kling 3.0', modality: 'video', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'sora-2': {
+    label: 'Sora 2', modality: 'video', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'seedance-2': {
+    label: 'Seedance 2.0', modality: 'video', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'luma-ray3': {
+    label: 'Luma Ray3', modality: 'video', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'pika-2.5': {
+    label: 'Pika 2.5', modality: 'video', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'wan-2.6': {
+    label: 'Wan 2.6', modality: 'video', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+
+  // ── Coming soon — audio (music) ────────────────────────────────────────────
+  'suno-v5.5': {
+    label: 'Suno v5.5', modality: 'audio', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'udio-v1.5': {
+    label: 'Udio v1.5', modality: 'audio', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'elevenlabs-music': {
+    label: 'EL Eleven Music', modality: 'audio', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'lyria-3': {
+    label: 'Google Lyria 3 Pro', modality: 'audio', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'stable-audio-2.5': {
+    label: 'Stable Audio 2.5', modality: 'audio', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+
+  // ── Coming soon — audio (speech) ───────────────────────────────────────────
+  'elevenlabs-tts': {
+    label: 'ElevenLabs TTS', modality: 'audio', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'play-ht': {
+    label: 'Play.ht', modality: 'audio', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
+  },
+  'resemble-ai': {
+    label: 'Resemble AI', modality: 'audio', defaultProvider: 'replicate',
+    providers: {}, defaults: {}, comingSoon: true,
   },
 };
 
