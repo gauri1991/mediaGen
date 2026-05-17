@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AssetTile } from '@/components/library/AssetTile';
 import { AssetLightbox } from '@/components/library/AssetLightbox';
+import { AddToProjectModal } from '@/components/projects/AddToProjectModal';
 import Link from 'next/link';
 import { Sparkles, Search } from 'lucide-react';
 
@@ -61,6 +62,7 @@ function LibraryPageInner() {
   const [state, setState] = useState<FetchState>({ assets: [], cursor: null, hasMore: false, loading: true });
   const [loadingMore, setLoadingMore] = useState(false);
   const [selected, setSelected] = useState<Asset | null>(null);
+  const [addToProjectGenId, setAddToProjectGenId] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function setFilter(f: 'all' | AssetType) {
@@ -219,6 +221,7 @@ function LibraryPageInner() {
                 key={asset.id}
                 asset={asset}
                 onClick={() => setSelected(asset)}
+                onAddToProject={(genId) => setAddToProjectGenId(genId)}
               />
             ))}
           </div>
@@ -240,6 +243,13 @@ function LibraryPageInner() {
       <AssetLightbox
         asset={selected}
         onClose={() => setSelected(null)}
+        onAddToProject={(genId) => { setSelected(null); setAddToProjectGenId(genId); }}
+      />
+
+      <AddToProjectModal
+        open={addToProjectGenId !== null}
+        generationId={addToProjectGenId ?? ''}
+        onClose={() => setAddToProjectGenId(null)}
       />
     </div>
   );

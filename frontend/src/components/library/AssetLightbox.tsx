@@ -3,7 +3,7 @@
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Download, X, ExternalLink } from 'lucide-react';
+import { Download, X, ExternalLink, FolderPlus } from 'lucide-react';
 import Link from 'next/link';
 
 interface LightboxAsset {
@@ -26,9 +26,10 @@ interface LightboxAsset {
 interface AssetLightboxProps {
   asset: LightboxAsset | null;
   onClose: () => void;
+  onAddToProject?: (generationId: string) => void;
 }
 
-export function AssetLightbox({ asset, onClose }: AssetLightboxProps) {
+export function AssetLightbox({ asset, onClose, onAddToProject }: AssetLightboxProps) {
   if (!asset) return null;
 
   const date = new Date(asset.generation.createdAt).toLocaleString();
@@ -95,7 +96,7 @@ export function AssetLightbox({ asset, onClose }: AssetLightboxProps) {
             <span className="text-xs text-neutral-500 ml-auto">{date}</span>
           </div>
 
-          <div className="flex gap-2 pt-1">
+          <div className="flex gap-2 pt-1 flex-wrap">
             {asset.url && (
               <a href={asset.url} download>
                 <Button size="sm" variant="secondary" className="bg-neutral-800 text-white hover:bg-neutral-700 border-0">
@@ -110,6 +111,17 @@ export function AssetLightbox({ asset, onClose }: AssetLightboxProps) {
                 Open in Generate
               </Button>
             </Link>
+            {onAddToProject && (
+              <Button
+                size="sm"
+                variant="secondary"
+                className="bg-neutral-800 text-white hover:bg-cyan-600 border-0"
+                onClick={() => { onAddToProject(asset.generation.id); onClose(); }}
+              >
+                <FolderPlus className="w-3.5 h-3.5 mr-1.5" />
+                Add to project
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>

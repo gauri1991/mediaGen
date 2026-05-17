@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Sparkles, Image, Video, Music, CheckCircle2, XCircle, Clock, Loader2, ChevronUp, ChevronDown } from 'lucide-react';
+import { Sparkles, Image, Video, Music, CheckCircle2, XCircle, Clock, Loader2, ChevronUp, ChevronDown, FolderPlus } from 'lucide-react';
+import { AddToProjectModal } from '@/components/projects/AddToProjectModal';
 
 interface Asset {
   id: string;
@@ -72,6 +73,7 @@ function HistoryPageInner() {
 
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [addToProjectGenId, setAddToProjectGenId] = useState<string | null>(null);
 
   function updateParam(key: string, value: string) {
     const p = new URLSearchParams(searchParams.toString());
@@ -220,6 +222,7 @@ function HistoryPageInner() {
                 >
                   Date <SortIcon field="created_at" active={sortField} dir={sortDir} />
                 </th>
+                <th className="px-4 py-3 w-10"></th>
               </tr>
             </thead>
             <tbody>
@@ -262,6 +265,16 @@ function HistoryPageInner() {
                     <td className="px-4 py-3 text-right text-muted-foreground/60 whitespace-nowrap">
                       {new Date(gen.created_at).toLocaleDateString()}
                     </td>
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => setAddToProjectGenId(gen.id)}
+                        className="text-muted-foreground/40 hover:text-cyan-500 transition-colors"
+                        aria-label="Add to project"
+                      >
+                        <FolderPlus className="w-4 h-4" />
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
@@ -269,6 +282,12 @@ function HistoryPageInner() {
           </table>
         </div>
       )}
+
+      <AddToProjectModal
+        open={addToProjectGenId !== null}
+        generationId={addToProjectGenId ?? ''}
+        onClose={() => setAddToProjectGenId(null)}
+      />
     </div>
   );
 }
