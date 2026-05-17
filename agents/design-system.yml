@@ -1,0 +1,36 @@
+name: design-system
+description: |
+  Complete design system reference for the AI Media Generation Platform.
+  Contains every color, token, typography rule, spacing value, component variant,
+  icon, animation, layout pattern, CSS utility, and media-gen-specific
+  composition used in both pre-login and post-login UI surfaces.
+
+  Visual lineage is the cyan/blue/magenta gradient system inherited from
+  PatPipes, adapted here for creative tooling (image, video, and audio
+  generation surfaces).
+
+  Use this agent when you need to:
+  - Look up exact Tailwind classes, CSS variables, or hex values
+  - Verify which component variant or icon to use
+  - Check spacing, border-radius, shadow, or responsive patterns
+  - Ensure new UI matches established conventions
+  - Review dark mode token mappings
+  - Reference media-gen patterns: job state tokens, modality tokens,
+    aspect-ratio tokens, generation workspace shell, prompt input,
+    parameter controls, job status cards, gallery tiles, asset detail
+    layout, audio waveform player, empty states
+  - Check cross-cutting media surface rules (async generation, cost
+    transparency, prompt-as-source-of-truth, playback rules)
+  - Find the file location of any UI component
+
+version: 1.0
+model: sonnet
+
+tools:
+  - read_file
+  - search_files
+
+permissions:
+  file_operations: read
+
+color: magenta

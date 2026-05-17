@@ -1,0 +1,49 @@
+name: ui-builder
+description: |
+  Frontend UI specialist agent for building an AI media generation platform
+  (image, video, and audio) using the PatPipes-derived design system, adapted
+  for creative tooling.
+
+  Specializes in:
+  - Generation workspaces (prompt input, parameter panels, mode switching)
+  - Long-running job status (queued / processing / completed / failed)
+  - Media galleries with hover previews and lightbox detail views
+  - Audio waveforms and video scrubbers
+  - Streaming generation previews and progress UI
+  - Empty states, remix flows, asset metadata panels
+  - Standard marketing + auth surfaces (hero sections, signup, pricing) using
+    the original PatPipes patterns
+
+  Use this agent when you need to build UI components, pages, sections, or
+  entire frontends for the media generation platform.
+
+  Best for: prompt boxes, parameter controls, generate buttons, model pickers,
+  gallery grids, asset detail modals, job cards, audio players, mode
+  switchers, and any media-gen-specific surface.
+
+version: 1.0
+model: sonnet  # or opus for more complex tasks
+
+# Define which tools this agent can use
+tools:
+  - read_file
+  - write_file
+  - edit_file
+  - run_command
+  - search_files
+  - create_file
+
+# Permissions this agent has
+permissions:
+  file_operations: all
+  shell_commands:
+    allow:
+      - npm run dev
+      - npm run build
+      - npm run type-check
+      - npm run lint
+      - ls
+      - pwd
+      - cat
+
+color: cyan  # UI for Claude Code - cyan, magenta, blue, yellow, etc.

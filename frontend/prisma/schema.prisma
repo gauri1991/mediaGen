@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── better-auth required tables ──────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions    Session[]
+  accounts    Account[]
+  generations Generation[]
+  assets      Asset[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([identifier, value])
+}
+
+// ── Media generation tables ───────────────────────────────────────────────────
+
+enum Modality {
+  image
+  video
+  audio
+}
+
+enum Provider {
+  replicate
+  akashml
+  modal
+  runpod
+}
+
+enum GenerationStatus {
+  queued
+  processing
+  completed
+  failed
+}
+
+enum AssetType {
+  image
+  video
+  audio
+}
+
+model Generation {
+  id            String           @id @default(cuid())
+  modality      Modality
+  modelSlug     String
+  provider      Provider
+  providerJobId String?
+  status        GenerationStatus @default(queued)
+  progress      Int?
+  prompt        String
+  negativePrompt String?
+  params        Json             @default("{}")
+  costCredits   Decimal?         @db.Decimal(10, 6)
+  errorMessage  String?
+  createdAt     DateTime         @default(now())
+  startedAt     DateTime?
+  completedAt   DateTime?
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Self-referential for remixes
+  parentId String?
+  parent   Generation?  @relation("Remixes", fields: [parentId], references: [id])
+  remixes  Generation[] @relation("Remixes")
+
+  assets Asset[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, status])
+  @@index([providerJobId])
+}
+
+model Asset {
+  id               String    @id @default(cuid())
+  type             AssetType
+  r2Key            String
+  url              String?
+  thumbnailR2Key   String?
+  mimeType         String?
+  bytes            Int?
+  width            Int?
+  height           Int?
+  durationSeconds  Float?
+  createdAt        DateTime  @default(now())
+
+  generationId String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([generationId])
+}
