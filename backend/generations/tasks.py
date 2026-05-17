@@ -71,14 +71,8 @@ def submit_generation(self, generation_id: str):
         return
 
     try:
-        provider = resolve_provider(gen.model_slug, gen.provider)
+        provider = resolve_provider(gen.model_slug, gen.provider, user=gen.user)
         model = get_model(gen.model_slug)
-
-        webhook_base = os.environ.get('DJANGO_BASE_URL', 'http://localhost:8000')
-        webhook_url = (
-            f'{webhook_base}/api/generations/{generation_id}/webhook'
-            if provider.name == 'replicate' else None
-        )
 
         params = {**model.get('defaults', {}), **gen.params}
         params['prompt'] = gen.prompt
@@ -89,7 +83,7 @@ def submit_generation(self, generation_id: str):
             model_slug=gen.model_slug,
             modality=gen.modality,
             params=params,
-            webhook_url=webhook_url,
+            webhook_url=None,
         ))
 
         with transaction.atomic():
@@ -103,10 +97,8 @@ def submit_generation(self, generation_id: str):
 
         logger.info(f'Submitted {generation_id} → {provider.name}:{provider_job_id}')
 
-        # Schedule polling (unless using webhooks)
-        if not webhook_url:
-            task = poll_generation.apply_async((generation_id,), countdown=5)
-            Generation.objects.filter(id=generation_id).update(celery_task_id=task.id)
+        task = poll_generation.apply_async((generation_id,), countdown=5)
+        Generation.objects.filter(id=generation_id).update(celery_task_id=task.id)
 
     except Exception as exc:
         logger.error(f'submit_generation failed for {generation_id}: {exc}')
@@ -136,7 +128,7 @@ def poll_generation(self, generation_id: str):
         return
 
     try:
-        provider = resolve_provider(gen.model_slug, gen.provider)
+        provider = resolve_provider(gen.model_slug, gen.provider, user=gen.user)
         result = provider.poll(gen.provider_job_id, gen.modality)
 
         if result.status == 'processing':
@@ -180,26 +172,39 @@ def handle_completed(generation_id: str, outputs: list[dict]):
     asset_records = []
 
     for i, output in enumerate(outputs):
-        url = output.get('url', '')
+        provider_url = output.get('url', '')
         asset_type = output.get('type', gen.modality)
         try:
-            mime = _mime(asset_type, url)
+            mime = _mime(asset_type, provider_url)
             ext = _ext(mime)
-            key = asset_key(gen.user_id, str(gen.id), f'output_{i}.{ext}')
 
-            data = download_url(url)
-            upload_bytes(key, data, mime)
-
-            # Thumbnail for images
+            # Try R2 upload; fall back to provider URL if R2 is not configured
+            r2_key = None
+            asset_url = provider_url
             thumb_key = None
-            thumb = _make_thumbnail(data, mime)
-            if thumb:
-                thumb_key = thumbnail_key(key)
-                upload_bytes(thumb_key, thumb, 'image/webp')
-
-            # Dimensions
             width = height = None
-            if mime.startswith('image/'):
+            data = None
+
+            try:
+                key = asset_key(gen.user_id, str(gen.id), f'output_{i}.{ext}')
+                data = download_url(provider_url)
+                upload_bytes(key, data, mime)
+                r2_key = key
+                asset_url = public_url(key)
+
+                thumb = _make_thumbnail(data, mime)
+                if thumb:
+                    thumb_key = thumbnail_key(key)
+                    upload_bytes(thumb_key, thumb, 'image/webp')
+            except Exception as r2_exc:
+                logger.warning(f'R2 upload skipped for {generation_id}[{i}]: {r2_exc} — using provider URL')
+                if data is None:
+                    try:
+                        data = download_url(provider_url)
+                    except Exception:
+                        pass
+
+            if mime.startswith('image/') and data:
                 try:
                     from PIL import Image
                     import io
@@ -212,17 +217,17 @@ def handle_completed(generation_id: str, outputs: list[dict]):
                 generation=gen,
                 user_id=gen.user_id,
                 type=asset_type,
-                r2_key=key,
-                url=public_url(key),
+                r2_key=r2_key or '',
+                url=asset_url,
                 thumbnail_r2_key=thumb_key,
                 mime_type=mime,
-                bytes=len(data),
+                bytes=len(data) if data else 0,
                 width=width,
                 height=height,
             ))
 
         except Exception as exc:
-            logger.error(f'Asset upload failed for {generation_id}[{i}]: {exc}')
+            logger.error(f'Asset record failed for {generation_id}[{i}]: {exc}')
 
     # Cost
     model = get_model(gen.model_slug)

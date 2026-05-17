@@ -263,7 +263,8 @@ function HistoryPageInner() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-right text-muted-foreground/60 whitespace-nowrap">
-                      {new Date(gen.created_at).toLocaleDateString()}
+                      <div>{new Date(gen.created_at).toLocaleDateString()}</div>
+                      <div className="text-xs text-muted-foreground/40">{new Date(gen.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </td>
                     <td className="px-4 py-3">
                       <button

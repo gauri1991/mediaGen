@@ -15,28 +15,20 @@ class ReplicateProvider(BaseProvider):
         return {
             'Authorization': f'Bearer {self._token}',
             'Content-Type': 'application/json',
-            'Prefer': 'wait',
         }
 
     def submit(self, inp: SubmitInput) -> str:
-        # model_slug format: "owner/name" or "owner/name:version"
         model_id = _model_id(inp.model_slug)
         payload: dict = {'input': inp.params}
-        if inp.webhook_url:
-            payload['webhook'] = inp.webhook_url
-            payload['webhook_events_filter'] = ['completed']
 
         with httpx.Client(timeout=30) as client:
             if ':' in model_id:
-                # versioned prediction
                 owner_name, version = model_id.rsplit(':', 1)
                 r = client.post(f'{BASE}/predictions', headers=self._headers(), json={
                     'version': version,
                     'input': inp.params,
-                    **({'webhook': inp.webhook_url, 'webhook_events_filter': ['completed']} if inp.webhook_url else {}),
                 })
             else:
-                # latest version of a model
                 r = client.post(
                     f'{BASE}/models/{model_id}/predictions',
                     headers=self._headers(),
